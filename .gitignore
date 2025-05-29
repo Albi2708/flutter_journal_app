@@ -1,0 +1,78 @@
+# ----------------------
+# Flutter / Dart
+# ----------------------
+.dart_tool/
+.packages
+.pub/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.metadata
+
+# Uncomment if you have generated localization files
+# lib/l10n/*.arb
+
+# ----------------------
+# Android
+# ----------------------
+/android/.gradle/
+/android/app/build/
+/android/local.properties
+/android/.idea/workspace.xml
+/android/.idea/tasks.xml
+/android/.idea/gradle.xml
+/android/.idea/dictionaries/
+/android/.idea/libraries/
+/*.iml
+.gradle/
+/**/gradle-wrapper.jar
+
+# ----------------------
+# iOS / macOS
+# ----------------------
+/ios/Pods/
+/ios/Runner.xcworkspace/
+/ios/Flutter/Generated.xcconfig
+/ios/Flutter/Flutter.framework
+/ios/.symlinks/
+/ios/ServiceDefinitions.json
+
+/macos/Pods/
+/macos/Runner.xcworkspace/
+/macos/Flutter/ephemeral/
+/macos/Flutter/Generated.xcconfig
+
+# ----------------------
+# Windows
+# ----------------------
+/windows/flutter/ephemeral/
+/windows/flutter/FlutterCpp/
+
+# ----------------------
+# Web
+# ----------------------
+/web/main.dart.js
+/web/main.dart.js.map
+
+# ----------------------
+# Editor & OS Files
+# ----------------------
+*.iml
+*.ipr
+*.iws
+.idea/
+.vscode/
+*.sln
+*.xcworkspace
+*.xcuserdatad
+*.log
+*.tmp
+*.swp
+.DS_Store
+
+# ----------------------
+# Secrets & Env
+# ----------------------
+.env
+*.keystore
+*.jks
