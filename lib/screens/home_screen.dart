@@ -8,16 +8,26 @@ import '../models/folder.dart';
 import '../providers/app_settings.dart';
 import '../widgets/custom_alert_dialog.dart';
 
+/// The main screen showing user-defined folders and appearance settings.
+///
+/// Provides two tabs:
+///  - **Folders**: list, create, edit, delete folders
+///  - **Appearance**: toggle dark mode and pick header color
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> with RouteAware {
+  /// Helper instance for SQLite operations.
   final db = DatabaseHelper();
+
+  /// Current list of folders loaded from the database.
   List<Folder> _folders = [];
 
+  /// Palette of colors available for folders and header.
   static const Map<String, Color> _colorOptions = {
     'Green': Color(0xFF4CAF50),
     'Blue': Color(0xFF2196F3),
@@ -38,9 +48,13 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
     _loadFolders();
   }
 
+  /// Loads all folders from the database.
+  ///
+  /// If none exist, seeds the defaults and reloads.
   Future<void> _loadFolders() async {
     final list = await db.getAllFolders();
     if (list.isEmpty) {
+      // Seed default folders on first run
       for (final f in [
         Folder(name: 'Daily Reflections', color: _colorOptions['Blue']!),
         Folder(name: 'Travel Notes', color: _colorOptions['Green']!),
@@ -55,31 +69,9 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
     setState(() {});
   }
 
-  void _addFolder(String name, Color color) async {
-    final id = await db.insertFolder(Folder(name: name, color: color));
-    setState(() {
-      _folders.add(Folder(id: id, name: name, color: color));
-    });
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final route = ModalRoute.of(context)!;
-    routeObserver.subscribe(this, route);
-  }
-
-  @override
-  void dispose() {
-    routeObserver.unsubscribe(this);
-    super.dispose();
-  }
-
-  @override
-  void didPopNext() {
-    setState(() {});
-  }
-
+  /// Shows the add/edit folder dialog.
+  ///
+  /// If [folder] is provided, populates fields for editing.
   void _showFolderDialog({Folder? folder}) {
     final isEditing = folder != null;
     String name = folder?.name ?? '';
@@ -145,10 +137,12 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                       if (trimmed.isEmpty) return;
                       final color = _colorOptions[selectedKey]!;
                       if (isEditing) {
+                        // Update existing folder
                         await db.updateFolder(
                           Folder(id: folder!.id, name: trimmed, color: color),
                         );
                       } else {
+                        // Create new folder
                         await db.insertFolder(
                           Folder(name: trimmed, color: color),
                         );
@@ -166,11 +160,31 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context)!;
+    routeObserver.subscribe(this, route);
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    // Refresh when returning from another screen
+    setState(() {});
+  }
+
+  @override
   Widget build(BuildContext context) {
     final settings = context.watch<AppSettings>();
 
+    // Base style for folder buttons
     final baseStyle = OutlinedButton.styleFrom(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       minimumSize: const Size.fromHeight(180),
       side: const BorderSide(width: 2),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
@@ -187,13 +201,11 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
             tabs: [Tab(text: 'FOLDERS'), Tab(text: 'APPEARENCE')],
           ),
         ),
-
         floatingActionButton: FloatingActionButton(
           onPressed: _showFolderDialog,
           child: const Icon(Icons.add),
           backgroundColor: settings.headerColor,
         ),
-
         body: TabBarView(
           children: [
             // ###################### FOLDERS TAB ######################
@@ -201,19 +213,15 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: ListView.separated(
-                  padding: const EdgeInsets.all(16),
                   itemCount: _folders.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 12),
                   itemBuilder: (context, i) {
                     final f = _folders[i];
                     return OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.surface,
-                        side: BorderSide(color: f.color, width: 2),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(24),
+                      style: baseStyle.copyWith(
+                        side: MaterialStateProperty.all(
+                          BorderSide(color: f.color, width: 2),
                         ),
-                        padding: EdgeInsets.zero,
                       ),
                       onPressed: () async {
                         await Navigator.push(
@@ -223,7 +231,6 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                           ),
                         );
                       },
-
                       child: ListTile(
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
@@ -245,7 +252,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                             }
                             final cnt = snap.data ?? 0;
                             return Text(
-                              '$cnt ${cnt == 1 ? 'Entry' : 'Entries'}',
+                              '$cnt ${cnt == 1 ? "Entry" : "Entries"}',
                             );
                           },
                         ),
@@ -255,7 +262,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                           onSelected: (action) async {
                             if (action == 'edit') {
                               _showFolderDialog(folder: f);
-                            } else if (action == 'delete') {
+                            } else {
                               final confirm = await showCustomDialog<bool>(
                                 context: context,
                                 title: 'Delete Folder?',

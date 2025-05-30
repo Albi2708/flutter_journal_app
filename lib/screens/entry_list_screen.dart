@@ -6,8 +6,13 @@ import 'package:journal_app/screens/entry_edit_screen.dart';
 import 'package:journal_app/widgets/custom_alert_dialog.dart';
 import 'package:intl/intl.dart';
 
+/// Displays the list of journal entries for a given [folder].
+///
+/// Allows viewing, editing, and deleting entries, as well as creating new ones.
 class EntryListScreen extends StatefulWidget {
+  /// The folder whose entries are shown.
   final Folder folder;
+
   const EntryListScreen({super.key, required this.folder});
 
   @override
@@ -16,6 +21,8 @@ class EntryListScreen extends StatefulWidget {
 
 class _EntryListScreenState extends State<EntryListScreen> {
   final db = DatabaseHelper();
+
+  /// The in-memory list of entries loaded from the database.
   List<JournalEntry> _entries = [];
 
   @override
@@ -24,11 +31,15 @@ class _EntryListScreenState extends State<EntryListScreen> {
     _loadEntries();
   }
 
+  /// Loads all entries for [widget.folder.id] from the database
+  /// and updates the UI.
   Future<void> _loadEntries() async {
     final list = await db.getEntriesByFolder(widget.folder.id!);
     setState(() => _entries = list);
   }
 
+  /// Prompts the user to confirm deletion, then remove the entry
+  /// with the given [id] and reloads the list.
   Future<void> _deleteEntry(int id) async {
     final confirm = await showCustomDialog<bool>(
       context: context,
@@ -51,6 +62,9 @@ class _EntryListScreenState extends State<EntryListScreen> {
     }
   }
 
+  /// Opens the entry editor for a new or existing [entry].
+  ///
+  /// After editing or creating, if the result is true, reloads the list.
   Future<void> _openEditor({JournalEntry? entry}) async {
     final didSave = await Navigator.push<bool>(
       context,
