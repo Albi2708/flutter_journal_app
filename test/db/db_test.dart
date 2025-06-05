@@ -14,12 +14,11 @@ void main() {
   late DatabaseHelper dbHelper;
 
   setUp(() async {
-    dbHelper = DatabaseHelper();
-
-    final db = await dbHelper.database;
-    await db.delete('entries');
-    await db.delete('folders');
-  });
+  dbHelper = DatabaseHelper(
+    factory: databaseFactoryFfi,
+    path: inMemoryDatabasePath, // constant in sqflite_common_ffi that resolves to :memory:
+  );
+});
 
   tearDown(() async {
     final db = await dbHelper.database;

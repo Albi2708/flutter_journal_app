@@ -13,32 +13,29 @@ import 'package:journal_app/models/media_item.dart';
 ///  * `folders`   – user-defined folders
 ///  * `media`     – photos attached to entries
 class DatabaseHelper {
-  static final DatabaseHelper _instance = DatabaseHelper._internal();
-  factory DatabaseHelper() => _instance;
-  DatabaseHelper._internal();
+  static DatabaseHelper? _instance;
+  final DatabaseFactory _dbFactory;
+  final String _dbPath;
+
+  DatabaseHelper._internal(this._dbFactory, this._dbPath);
+
+  factory DatabaseHelper({DatabaseFactory? factory, String? path}) {
+    _instance ??= DatabaseHelper._internal(
+      factory ?? databaseFactory,
+      path ?? 'journal.db',
+    );
+    return _instance!;
+  }
 
   static Database? _database;
 
-  /// Opens the database if needed and returns the [Database] instance.
-  ///
-  /// If the DB has not yet been initialized, calls [_initDatabase].
   Future<Database> get database async {
     if (_database != null) return _database!;
-    _database = await _initDatabase();
-    return _database!;
-  }
-
-  /// Creates (or opens) the physical database file at `journal_app.db`,
-  /// registers [_onCreate] and [_onUpgrade], and sets the schema version.
-  Future<Database> _initDatabase() async {
-    final dbPath = await getDatabasesPath();
-    final path = join(dbPath, 'journal_app.db');
-    return openDatabase(
-      path,
-      version: 4,
+    _database = await _dbFactory.openDatabase(_dbPath, options: OpenDatabaseOptions(
+      version: 1,
       onCreate: _onCreate,
-      onUpgrade: _onUpgrade,
-    );
+    ));
+    return _database!;
   }
 
   /// Called when the database is first created.
